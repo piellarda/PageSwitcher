@@ -37,7 +37,8 @@ class PageSwitcherView : UIScrollView, UIScrollViewDelegate, PSContentDelegate, 
     var shrinkedContentWidth : CGFloat!
     var shrinkedContentHeight : CGFloat!
     
-    var offset : CGFloat = 20
+    let offset : CGFloat = 20
+    let animationDuration = 0.3
     
     var pageViewControllerPresented = false
     
@@ -45,6 +46,8 @@ class PageSwitcherView : UIScrollView, UIScrollViewDelegate, PSContentDelegate, 
     var pageSwitcherDelegate : PSDelegate?
     var pageSwitcherParentVC : UIViewController?
     var pageViewController : UIPageViewController?
+    
+    var transitionManager = TransisitonManager()
     
     init(pageSwitcherDelegate: PSDelegate) {
         super.init()
@@ -81,7 +84,7 @@ class PageSwitcherView : UIScrollView, UIScrollViewDelegate, PSContentDelegate, 
         var idx = content.pageSwitcherIndex + 1
         while idx < numberOfContentView + content.pageSwitcherIndex {
             if let next = self.pageSwitcherDelegate?.pageSwitcher(self, viewControllerAfterViewController: current)? {
-                self.addContentView(next, leftContent: self.currentViewControllers.last)
+                self.addContentView(next, leftContent: self.currentViewControllers.last, animated: true)
                 self.currentViewControllers.append(next)
                 current = next
             } else {
@@ -94,7 +97,7 @@ class PageSwitcherView : UIScrollView, UIScrollViewDelegate, PSContentDelegate, 
         current = startingContent
         while idx >= 0 && idx > content.pageSwitcherIndex - numberOfContentView {
             if let before = self.pageSwitcherDelegate?.pageSwitcher(self, viewControllerBeforeViewController: current)? {
-                self.addContentView(before, rightContent: self.currentViewControllers.first)
+                self.addContentView(before, rightContent: self.currentViewControllers.first, animated: true)
                 self.currentViewControllers.insert(before, atIndex: 0)
                 current = before
             } else {
@@ -186,30 +189,45 @@ class PageSwitcherView : UIScrollView, UIScrollViewDelegate, PSContentDelegate, 
     }
     
     // Add a page content on the right side
-    func addContentView(content: PSContentViewController, leftContent: PSContentViewController?) {
+    func addContentView(content: PSContentViewController, leftContent: PSContentViewController?, animated : Bool = false) {
         self.pageSwitcherParentVC?.addChildViewController(content)
         self.addSubview(content.view)
         content.view.setTranslatesAutoresizingMaskIntoConstraints(true)
-        var origin : CGFloat = 0 + offset
-        if let left = leftContent {
-            origin = left.view.frame.origin.x + shrinkedContentWidth + offset
-        }
         content.view.layer.setAffineTransform(CGAffineTransformMakeScale(scaleFactor, scaleFactor))
-        content.view.frame = CGRectMake(origin, 0, shrinkedContentWidth, shrinkedContentHeight)
+        
+        var origin : CGFloat = 0 + offset
+        origin = leftContent!.view.frame.origin.x + shrinkedContentWidth + offset
+        
+        if !animated {
+            content.view.frame = CGRectMake(origin, 0, shrinkedContentWidth, shrinkedContentHeight)
+        } else {
+            content.view.frame = CGRectMake(origin + offset + shrinkedContentWidth, 0, shrinkedContentWidth, shrinkedContentHeight)
+            UIView.animateWithDuration(animationDuration, delay: 0.0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1.2, options: nil, animations: { () -> Void in
+                content.view.frame = CGRectMake(origin, 0, self.shrinkedContentWidth, self.shrinkedContentHeight)
+                }, completion: nil)
+        }
+        
         println("New right page \(content.pageSwitcherIndex) with frame = \(content.view.frame)")
     }
     
     // Add a page content on the left side
-    func addContentView(content: PSContentViewController, rightContent: PSContentViewController?) {
+    func addContentView(content: PSContentViewController, rightContent: PSContentViewController?, animated: Bool = false) {
         self.pageSwitcherParentVC?.addChildViewController(content)
         self.addSubview(content.view)
         content.view.setTranslatesAutoresizingMaskIntoConstraints(true)
-        var origin : CGFloat = 0 + offset
-        if (rightContent != nil) {
-            origin = rightContent!.view.frame.origin.x - shrinkedContentWidth - offset
-        }
         content.view.layer.setAffineTransform(CGAffineTransformMakeScale(scaleFactor, scaleFactor))
-        content.view.frame = CGRectMake(origin, 0, shrinkedContentWidth, shrinkedContentHeight)
+        
+        var origin : CGFloat = 0 + offset
+        origin = rightContent!.view.frame.origin.x - shrinkedContentWidth - offset
+        
+        if !animated {
+            content.view.frame = CGRectMake(origin, 0, shrinkedContentWidth, shrinkedContentHeight)
+        } else {
+            content.view.frame = CGRectMake(origin - offset - shrinkedContentWidth, 0, shrinkedContentWidth, shrinkedContentHeight)
+            UIView.animateWithDuration(animationDuration, delay: 0.0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1.2, options: nil, animations: { () -> Void in
+                content.view.frame = CGRectMake(origin, 0, self.shrinkedContentWidth, self.shrinkedContentHeight)
+            }, completion: nil)
+        }
         println("New left page \(content.pageSwitcherIndex) with frame = \(content.view.frame)")
     }
     
@@ -237,6 +255,7 @@ class PageSwitcherView : UIScrollView, UIScrollViewDelegate, PSContentDelegate, 
     // MARK: PageSwitcher Delegate
     func pageContentTapped(content: PSContentViewController) {
         let page = content as PSContentViewController
+        
         if self.pageViewControllerPresented {
             self.currentViewControllers.removeAll(keepCapacity: true)
             self.pageViewController?.dismissViewControllerAnimated(true, completion: { () -> Void in
@@ -244,15 +263,29 @@ class PageSwitcherView : UIScrollView, UIScrollViewDelegate, PSContentDelegate, 
             })
             self.pageViewControllerPresented = false
         } else {
+            self.transitionManager.childViewControllerTapped = content
+            self.transitionManager.transform = content.view.layer.affineTransform()
+            self.transitionManager.pageCenter = self.convertPoint(page.view.center, toView: self.pageSwitcherParentVC?.view)
+            self.transitionManager.pageSwitcher = self
             pageViewController = UIPageViewController(transitionStyle: .Scroll, navigationOrientation: .Horizontal, options: nil)
             pageViewController?.dataSource = self
-            pageViewController?.setViewControllers([content], direction: .Forward, animated: true, completion: nil)
-            for contentVC in self.currentViewControllers {
-                contentVC.view.layer.setAffineTransform(CGAffineTransformIdentity)
-                contentVC.view.removeFromSuperview()
-                contentVC.removeFromParentViewController()
-            }
+            pageViewController?.setViewControllers([page], direction: .Forward, animated: true, completion: nil)
+            pageViewController?.transitioningDelegate = self.transitionManager
+            
+            let snapshot = page.view.snapshotViewAfterScreenUpdates(true)
+            snapshot.frame = page.view.frame
+            self.addSubview(snapshot)
+            
+            page.view.layer.setAffineTransform(CGAffineTransformIdentity)
+            
             self.pageSwitcherParentVC?.presentViewController(pageViewController!, animated: true) { () -> Void in
+                snapshot.removeFromSuperview()
+                for contentPage in self.currentViewControllers {
+                    if contentPage != page {
+                        contentPage.view.removeFromSuperview()
+                    }
+                    contentPage.view.layer.setAffineTransform(CGAffineTransformIdentity)
+                }
                 println("Pager displayed")
             }
             self.pageViewControllerPresented = true

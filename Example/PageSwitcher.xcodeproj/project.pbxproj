@@ -15,6 +15,7 @@
 		7700EAE51A83DDBA001C8F07 /* PageSwitcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7700EAE41A83DDBA001C8F07 /* PageSwitcherTests.swift */; };
 		775479F71A83DF03008B7F32 /* PageSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775479F61A83DF03008B7F32 /* PageSwitcher.swift */; };
 		775479F91A83DFB7008B7F32 /* ContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775479F81A83DFB7008B7F32 /* ContentViewController.swift */; };
+		77ED64111A84BF8500B48560 /* TransitionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ED64101A84BF8500B48560 /* TransitionManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +41,7 @@
 		7700EAE41A83DDBA001C8F07 /* PageSwitcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageSwitcherTests.swift; sourceTree = "<group>"; };
 		775479F61A83DF03008B7F32 /* PageSwitcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PageSwitcher.swift; sourceTree = "<group>"; };
 		775479F81A83DFB7008B7F32 /* ContentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentViewController.swift; sourceTree = "<group>"; };
+		77ED64101A84BF8500B48560 /* TransitionManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransitionManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				775479F61A83DF03008B7F32 /* PageSwitcher.swift */,
+				77ED64101A84BF8500B48560 /* TransitionManager.swift */,
 			);
 			name = PageSwitcher;
 			path = ../../PageSwitcher;
@@ -227,6 +230,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				775479F91A83DFB7008B7F32 /* ContentViewController.swift in Sources */,
+				77ED64111A84BF8500B48560 /* TransitionManager.swift in Sources */,
 				7700EAD11A83DDBA001C8F07 /* ViewController.swift in Sources */,
 				7700EACF1A83DDBA001C8F07 /* AppDelegate.swift in Sources */,
 				775479F71A83DF03008B7F32 /* PageSwitcher.swift in Sources */,
